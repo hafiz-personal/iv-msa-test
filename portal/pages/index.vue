@@ -1,11 +1,15 @@
 <template>
-  <Tutorial />
+  <div class="container">
+    <TodoList />
+  </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import TodoList from '@/components/TodoList.vue'
 
-export default Vue.extend({
-  name: 'IndexPage',
-})
+export default {
+  components: {
+    TodoList,
+  },
+}
 </script>
