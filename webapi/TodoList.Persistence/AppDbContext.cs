@@ -3,7 +3,7 @@ using TodoList.Core.Domain;
 
 namespace TodoList.Persistence
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : DbContext, IAppDbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> opt) : base(opt)
         {

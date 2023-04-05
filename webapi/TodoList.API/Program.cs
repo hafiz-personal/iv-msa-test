@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using TodoList.Application;
+using TodoList.Application.Services.Todos;
 using TodoList.Core;
 using TodoList.Persistence;
 
@@ -10,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 var appsettings = new AppSettings();
 
 builder.Configuration.Bind(appsettings);
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -17,7 +20,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(c => 
         c.UseSqlServer(appsettings.ConnectionStrings.AppConnection,
         b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 
+builder.Services.AddTransient<ITodoService, TodoService>();
 
 var app = builder.Build();
 
