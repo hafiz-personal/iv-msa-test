@@ -1,7 +1,7 @@
 <template>
   <div class="container mt-4">
     <h1 class="text-center mb-4">Tasks List</h1>
-
+    
     <div class="row mb-4">
       <div class="container mt-4 d-flex justify-content-center">
         <b-form inline>
@@ -11,7 +11,7 @@
             v-model="newTodo"
             placeholder="Task to do"
           ></b-form-input>
-
+          
           <date-picker
             class="mb-2 mr-sm-2 mb-sm-0"
             v-model="todoDate"
@@ -37,7 +37,7 @@
           </b-button>
           <b-button
             v-if="!isUpdate"
-            :disabled="todoDate === '' || newTodo === ''"
+            :disabled="todoDate === null || newTodo === ''"
             @click="addTodo"
             variant="primary"
             class="mb-2 mr-sm-2 mb-sm-0"
@@ -66,9 +66,9 @@
             <h6 :class="todo.done ? 'strike' : ''">{{ todo.fulltext }}</h6>
           </div>
           <div>
-            <b-button @click="editTodo(todo)" variant="secondary">
+            <!-- <b-button @click="editTodo(todo)" variant="secondary">
               <font-awesome-icon icon="pencil"></font-awesome-icon>
-            </b-button>
+            </b-button> -->
             <b-button @click="deleteTodo(todo)" variant="danger">
               <font-awesome-icon icon="trash"></font-awesome-icon>
             </b-button>
@@ -94,16 +94,17 @@ import {
 } from '@nuxtjs/composition-api'
 import { Todo } from '~/types/todo'
 import Swal from 'sweetalert2'
-import { formatDate } from '~/helpers/common'
+import { formatDate, formatDateToStr } from '~/helpers/common'
 import todoService from '~/services/todo-service'
 import { TodoCompletionRequest } from '~/types/todo-completion-request'
+import { TodoCreate } from '~/types/todo-create'
 
 export default defineComponent({
   setup() {
     const newTodo = ref('')
     const todos = ref<Todo[]>([])
-    const editingTodo = ref<Todo | null>(null)
-    const todoDate = ref('')
+    const editingTodo = ref<Todo>()
+    const todoDate = ref<Date | null>(null)
     const isUpdate = ref(false)
     const ctx = useContext()
     const mainCompletedCheckbox = ref(false)
@@ -142,49 +143,49 @@ export default defineComponent({
       await todoService(ctx.$axios).completeTask(inputs)
     }
 
-    const addTodo = async () => {
-      
-      const newId = todos.value.length + 1
-      // const newTodoItem = {
-      //   id: newId,
-      //   text: newTodo.value,
-      //   description: todoDate.value,
-      //   completed: completed.value,
-      // }
-      // todos.value.push(newTodoItem)
+    const addTodo = async () => {      
+    
+     let input = {
+        date: formatDateToStr(todoDate.value),
+        text: newTodo.value
+      } as TodoCreate
+     console.log(input)
+      await todoService(ctx.$axios).create(input)
       newTodo.value = ''
-      todoDate.value = ''
+      todoDate.value = null
+      await getAllTasks()
     }
 
     const editTodo = (todo: Todo) => {
-      // editingTodo.value = todo
-      // newTodo.value = todo.text
-      // todoDate.value = todo.description
-      // isUpdate.value = true
+      newTodo.value = todo.text
+      todoDate.value = todo.date
+      editingTodo.value = todo
+      console.log('updaet', todoDate.value)
     }
 
-    const saveTodo = () => {
-      if (editingTodo.value) {
-        editingTodo.value.text = newTodo.value
-        editingTodo.value = null
-        newTodo.value = ''
-      }
+    const saveTodo = async (todo: Todo) => {
+      await todoService(ctx.$axios).update(editingTodo.value!)
     }
 
-    const deleteTodo = (todo: Todo) => {
-      Swal.fire({
+    const deleteTodo = async (todo: Todo) => {
+      let result = await Swal.fire({
         position: 'center',
         icon: 'error',
         text: `Delete task ${todo.text}?`,
         showConfirmButton: true,
         showCancelButton: true,
       })
+
+      if(result.isConfirmed) {
+        await todoService(ctx.$axios).delete(todo.id)
+        await getAllTasks()
+      }
     }
 
     const cancelUpdate = () => {
       isUpdate.value = false
       newTodo.value = ''
-      todoDate.value = ''
+      todoDate.value = null
     }
 
     onMounted(async () => {
