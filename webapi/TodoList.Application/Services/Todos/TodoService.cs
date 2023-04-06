@@ -92,10 +92,7 @@ namespace TodoList.Application.Services.Todos
                     {
                         throw new NotFoundException($"Task Id {itemId} not found");
                     }
-                    if (entity.Id == 6)
-                    {
-                        throw new Exception();
-                    }
+                    
                     entity.Done = item.IsComplete;
                     _dbContext.Todos.Update(entity);
                     await _dbContext.SaveChangesAsync(cancellationToken);

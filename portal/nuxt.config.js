@@ -21,7 +21,10 @@ export default {
   css: [],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
-  plugins: [{ src: '~/plugins/main.js', ssr: false },],
+  plugins: [
+    { src: '~/plugins/main.ts', ssr: false },
+    { src: '~/plugins/libraries.js', ssr: false },
+  ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
@@ -31,7 +34,8 @@ export default {
     // https://go.nuxtjs.dev/typescript
     '@nuxt/typescript-build',
     '@nuxtjs/composition-api/module',
-    '@nuxtjs/fontawesome'
+    '@nuxtjs/fontawesome',
+    ['@nuxtjs/dotenv', { filename: `.env.${process.env.ENV_FILE}`, systemvars: true }]
   ],
   
   // Modules: https://go.nuxtjs.dev/config-modules
@@ -45,7 +49,7 @@ export default {
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
     // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
-    baseURL: '/',
+    baseURL: process.env.apiBaseUrl
   },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
@@ -56,4 +60,7 @@ export default {
      brands:true
     }
    },
+   publicRuntimeConfig: {
+    apiBaseUrl: process.env.apiBaseUrl,
+  },
 }

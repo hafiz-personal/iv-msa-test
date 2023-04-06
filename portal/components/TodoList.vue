@@ -5,7 +5,6 @@
     <div class="row mb-4">
       <div class="container mt-4 d-flex justify-content-center">
         <b-form inline>
-         
           <b-form-input
             id="todoName"
             class="mb-2 mr-sm-2 mb-sm-0"
@@ -19,7 +18,7 @@
             placeholder="Choose Date"
             format="DD/MM/YYYY"
           />
-        
+
           <b-button
             @click="cancelUpdate"
             v-if="isUpdate"
@@ -48,16 +47,23 @@
         </b-form>
       </div>
     </div>
-    <b-form-checkbox v-model="mainCompletedCheckbox" v-show="todos.length" @change="toggleAllComplete">Mark all as complete</b-form-checkbox>
+    <b-form-checkbox
+      v-model="mainCompletedCheckbox"
+      v-show="todos.length"
+      @change="toggleAllComplete"
+      >Mark all as complete</b-form-checkbox
+    >
     <b-list-group>
       <b-list-group-item v-for="todo in todos" :key="todo.id">
         <div class="d-flex justify-content-between align-items-center">
           <div>
-            <b-form-checkbox @change="toggleChildCheckbox" v-model="todo.completed"></b-form-checkbox>
+            <b-form-checkbox
+              @change="toggleChildCheckbox(todo)"
+              v-model="todo.done"
+            ></b-form-checkbox>
           </div>
           <div>
-            <h6 :class="todo.completed ? 'strike' : ''"> {{ todo.text }} {{ formatDate(todo.description) }}</h6>
-           
+            <h6 :class="todo.done ? 'strike' : ''">{{ todo.fulltext }}</h6>
           </div>
           <div>
             <b-button @click="editTodo(todo)" variant="secondary">
@@ -71,21 +77,27 @@
       </b-list-group-item>
     </b-list-group>
     <b-badge v-if="todos.length" variant="primary">
-      {{ todos.filter((f) => f.completed === false).length }} items
-      left</b-badge
+      {{ todos.filter((f) => f.done === false).length }} items left</b-badge
     >
     <b-badge v-if="todos.length" variant="secondary"
-      >Clear {{ todos.filter((f) => f.completed).length }} completed
-      item</b-badge
+      >Clear {{ todos.filter((f) => f.done).length }} completed item</b-badge
     >
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, useContext } from '@nuxtjs/composition-api'
+import {
+  defineComponent,
+  ref,
+  useContext,
+  onMounted,
+} from '@nuxtjs/composition-api'
 import { Todo } from '~/types/todo'
 import Swal from 'sweetalert2'
 import { formatDate } from '~/helpers/common'
+import todoService from '~/services/todo-service'
+import { TodoCompletionRequest } from '~/types/todo-completion-request'
+
 export default defineComponent({
   setup() {
     const newTodo = ref('')
@@ -93,40 +105,62 @@ export default defineComponent({
     const editingTodo = ref<Todo | null>(null)
     const todoDate = ref('')
     const isUpdate = ref(false)
-    const completed = ref(false)
-    const context = useContext()
+    const ctx = useContext()
     const mainCompletedCheckbox = ref(false)
-
-    const toggleAllComplete = (e: boolean) => {      
-        todos.value.forEach(f=> {
-          f.completed = e
-        })      
+    
+    
+    const getAllTasks = async () => {
+       todos.value = await todoService(ctx.$axios).get()
     }
 
-    const toggleChildCheckbox = () => {
-      mainCompletedCheckbox.value = todos.value.every(
-        (option) => option.completed
-      );
+    const toggleAllComplete = async (e: boolean) => {
+      todos.value.forEach((f) => {
+        f.done = e
+      })
+      let result: TodoCompletionRequest[] = []
+      let input = todos.value.map(m=> {
+        result.push({
+          id: m.id,
+          isComplete: m.done,          
+        } as TodoCompletionRequest)
+      })
+      await todoService(ctx.$axios).completeTask(result)
     }
 
-    const addTodo = () => {
+    const toggleMainCheckboxFromChild = () => {
+      mainCompletedCheckbox.value = todos.value.every((option) => option.done)
+    }
+
+    const toggleChildCheckbox = async (e: Todo) => {
+      toggleMainCheckboxFromChild()
+      let input = {
+        id: e.id,
+        isComplete: e.done
+      } as TodoCompletionRequest
+      let inputs: TodoCompletionRequest[] = []
+      inputs.push(input)
+      await todoService(ctx.$axios).completeTask(inputs)
+    }
+
+    const addTodo = async () => {
+      
       const newId = todos.value.length + 1
-      const newTodoItem = {
-        id: newId,
-        text: newTodo.value,
-        description: todoDate.value,
-        completed: completed.value,
-      }
-      todos.value.push(newTodoItem)
+      // const newTodoItem = {
+      //   id: newId,
+      //   text: newTodo.value,
+      //   description: todoDate.value,
+      //   completed: completed.value,
+      // }
+      // todos.value.push(newTodoItem)
       newTodo.value = ''
       todoDate.value = ''
     }
 
     const editTodo = (todo: Todo) => {
-      editingTodo.value = todo
-      newTodo.value = todo.text
-      todoDate.value = todo.description
-      isUpdate.value = true
+      // editingTodo.value = todo
+      // newTodo.value = todo.text
+      // todoDate.value = todo.description
+      // isUpdate.value = true
     }
 
     const saveTodo = () => {
@@ -145,7 +179,6 @@ export default defineComponent({
         showConfirmButton: true,
         showCancelButton: true,
       })
-    
     }
 
     const cancelUpdate = () => {
@@ -153,6 +186,11 @@ export default defineComponent({
       newTodo.value = ''
       todoDate.value = ''
     }
+
+    onMounted(async () => {
+      await getAllTasks()
+      toggleMainCheckboxFromChild()
+    })
 
     return {
       newTodo,
@@ -168,13 +206,13 @@ export default defineComponent({
       formatDate,
       toggleAllComplete,
       mainCompletedCheckbox,
-      toggleChildCheckbox
+      toggleChildCheckbox,
     }
   },
 })
 </script>
 <style scoped>
 .strike {
-    text-decoration: Line-Through
+  text-decoration: Line-Through;
 }
 </style>

@@ -1,6 +1,8 @@
 export interface Todo {
   id: number
   text: string
-  description: string
-  completed: boolean
+  order: number
+  done: boolean,
+  date: Date,
+  fulltext: string
 }
