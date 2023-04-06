@@ -13,19 +13,13 @@
             placeholder="Task to do"
           ></b-form-input>
 
-          <!-- <label class="sr-only" for="todoDate">Date</label> -->
           <date-picker
             class="mb-2 mr-sm-2 mb-sm-0"
             v-model="todoDescription"
             placeholder="Choose Date"
             format="DD/MM/YYYY"
           />
-          <!-- <b-form-input
-            id="todoDate"
-            class="mb-2 mr-sm-2 mb-sm-0"
-            v-model="todoDescription"
-            placeholder="Date"
-          ></b-form-input> -->
+        
           <b-button
             @click="cancelUpdate"
             v-if="isUpdate"
@@ -54,12 +48,12 @@
         </b-form>
       </div>
     </div>
-    <b-form-checkbox v-if="todos.length">Mark all as complete</b-form-checkbox>
+    <b-form-checkbox v-model="mainCompletedCheckbox" v-show="todos.length" @change="toggleAllComplete">Mark all as complete</b-form-checkbox>
     <b-list-group>
       <b-list-group-item v-for="todo in todos" :key="todo.id">
         <div class="d-flex justify-content-between align-items-center">
           <div>
-            <b-form-checkbox v-model="todo.completed"></b-form-checkbox>
+            <b-form-checkbox @change="toggleChildCheckbox" v-model="todo.completed"></b-form-checkbox>
           </div>
           <div>
             <h6 :class="todo.completed ? 'strike' : ''"> {{ todo.text }} {{ formatDate(todo.description) }}</h6>
@@ -101,6 +95,19 @@ export default defineComponent({
     const isUpdate = ref(false)
     const completed = ref(false)
     const context = useContext()
+    const mainCompletedCheckbox = ref(false)
+
+    const toggleAllComplete = (e: boolean) => {      
+        todos.value.forEach(f=> {
+          f.completed = e
+        })      
+    }
+
+    const toggleChildCheckbox = () => {
+      mainCompletedCheckbox.value = todos.value.every(
+        (option) => option.completed
+      );
+    }
 
     const addTodo = () => {
       const newId = todos.value.length + 1
@@ -158,7 +165,10 @@ export default defineComponent({
       deleteTodo,
       isUpdate,
       cancelUpdate,
-      formatDate
+      formatDate,
+      toggleAllComplete,
+      mainCompletedCheckbox,
+      toggleChildCheckbox
     }
   },
 })
