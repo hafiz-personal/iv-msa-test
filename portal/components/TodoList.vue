@@ -5,7 +5,7 @@
     <div class="row mb-4">
       <div class="container mt-4 d-flex justify-content-center">
         <b-form inline>
-          <!-- <label class="sr-only" for="todoName">Name</label> -->
+         
           <b-form-input
             id="todoName"
             class="mb-2 mr-sm-2 mb-sm-0"
@@ -15,7 +15,7 @@
 
           <date-picker
             class="mb-2 mr-sm-2 mb-sm-0"
-            v-model="todoDescription"
+            v-model="todoDate"
             placeholder="Choose Date"
             format="DD/MM/YYYY"
           />
@@ -38,7 +38,7 @@
           </b-button>
           <b-button
             v-if="!isUpdate"
-            :disabled="todoDescription === '' || newTodo === ''"
+            :disabled="todoDate === '' || newTodo === ''"
             @click="addTodo"
             variant="primary"
             class="mb-2 mr-sm-2 mb-sm-0"
@@ -91,7 +91,7 @@ export default defineComponent({
     const newTodo = ref('')
     const todos = ref<Todo[]>([])
     const editingTodo = ref<Todo | null>(null)
-    const todoDescription = ref('')
+    const todoDate = ref('')
     const isUpdate = ref(false)
     const completed = ref(false)
     const context = useContext()
@@ -114,18 +114,18 @@ export default defineComponent({
       const newTodoItem = {
         id: newId,
         text: newTodo.value,
-        description: todoDescription.value,
+        description: todoDate.value,
         completed: completed.value,
       }
       todos.value.push(newTodoItem)
       newTodo.value = ''
-      todoDescription.value = ''
+      todoDate.value = ''
     }
 
     const editTodo = (todo: Todo) => {
       editingTodo.value = todo
       newTodo.value = todo.text
-      todoDescription.value = todo.description
+      todoDate.value = todo.description
       isUpdate.value = true
     }
 
@@ -145,20 +145,20 @@ export default defineComponent({
         showConfirmButton: true,
         showCancelButton: true,
       })
-      //   todos.value = todos.value.filter((item) => item.id !== todo.id)
+    
     }
 
     const cancelUpdate = () => {
       isUpdate.value = false
       newTodo.value = ''
-      todoDescription.value = ''
+      todoDate.value = ''
     }
 
     return {
       newTodo,
       todos,
       editingTodo,
-      todoDescription,
+      todoDate,
       addTodo,
       editTodo,
       saveTodo,
