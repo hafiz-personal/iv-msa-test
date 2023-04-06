@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "cross-env ENV_FILE=dev nuxt",
     "build": "nuxt build",
+    "build-dev": "cross-env ENV_FILE=dev nuxt build",
+    "start-dev": "cross-env ENV_FILE=dev nuxt start",
     "start": "nuxt start",
     "generate": "nuxt generate",
     "lint:prettier": "prettier --check .",

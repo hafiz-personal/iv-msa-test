@@ -1,11 +1,49 @@
-version: '3.9'
+version: '3.4'
 
 services:
-  sql_server:
-    image: mcr.microsoft.com/mssql/server:2019-latest
-    environment:
-      ACCEPT_EULA: Y
-      SA_PASSWORD: 123qwe
-    ports:
-      - "1433:1433"
-    container_name: sql_server
+    sql_server:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        environment:
+            ACCEPT_EULA: Y
+            SA_PASSWORD: 123qwe***
+        ports:
+            - "1433:1433"
+        container_name: sql_server
+        networks:
+            - ivnet
+
+    todolistapi:
+        image: todolistapi
+        build:
+            context: ./webapi
+            dockerfile: TodoList.API/Dockerfile
+        #command: ["./wait-for-it.sh", "sql_server:1433", "--", "dotnet", "TodoList.API.dll"]
+        depends_on:
+            - sql_server
+        ports:
+            - 5000:5000
+        environment:
+            TZ: "Asia/Kuala_Lumpur"
+            ASPNETCORE_ENVIRONMENT: Development
+            ASPNETCORE_URLS: http://+:5000
+        networks:
+            - ivnet
+
+    portal:
+        image: portal
+        build:
+            context: ./portal
+            dockerfile: Dockerfile
+        container_name: portal
+        depends_on:
+            - sql_server
+            - todolistapi
+        ports:
+          - "3000:3000"
+        networks:
+            - ivnet
+
+networks:
+    ivnet:
+        driver: bridge
+    

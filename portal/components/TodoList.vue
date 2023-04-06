@@ -112,6 +112,7 @@ export default defineComponent({
     
     const getAllTasks = async () => {
        todos.value = await todoService(ctx.$axios).get()
+       toggleMainCheckboxFromChild()
     }
 
     const toggleAllComplete = async (e: boolean) => {
@@ -149,7 +150,7 @@ export default defineComponent({
         date: formatDateToStr(todoDate.value),
         text: newTodo.value
       } as TodoCreate
-     console.log(input)
+    
       await todoService(ctx.$axios).create(input)
       newTodo.value = ''
       todoDate.value = null
@@ -160,7 +161,7 @@ export default defineComponent({
       newTodo.value = todo.text
       todoDate.value = todo.date
       editingTodo.value = todo
-      console.log('updaet', todoDate.value)
+    
     }
 
     const saveTodo = async (todo: Todo) => {
@@ -190,7 +191,7 @@ export default defineComponent({
 
     onMounted(async () => {
       await getAllTasks()
-      toggleMainCheckboxFromChild()
+      
     })
 
     return {

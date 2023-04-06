@@ -6,10 +6,13 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["TodoList.API.csproj", "."]
-RUN dotnet restore "./TodoList.API.csproj"
+COPY ["TodoList.API/TodoList.API.csproj", "TodoList.API/"]
+COPY ["TodoList.Application/TodoList.Application.csproj", "TodoList.Application/"]
+COPY ["TodoList.Persistence/TodoList.Persistence.csproj", "TodoList.Persistence/"]
+COPY ["TodoList.Core/TodoList.Core.csproj", "TodoList.Core/"]
+RUN dotnet restore "TodoList.API/TodoList.API.csproj"
 COPY . .
-WORKDIR "/src/."
+WORKDIR "/src/TodoList.API"
 RUN dotnet build "TodoList.API.csproj" -c Release -o /app/build
 
 FROM build AS publish
